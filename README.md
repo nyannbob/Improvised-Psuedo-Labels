@@ -101,7 +101,7 @@ current_threshold = momentum_factor * previous_threshold + \
 
 Here are some visual results and insights from our project:
 
-| **Pseudo-Label Distribution** | **Model Accuracy Comparison** |
+| **Pseudo-Label Distribution** | **Model Performance on real world data** |
 |-------------------------------|-------------------------------|
 | ![Pseudo-Labels](barchart.png) | ![Accuracy](image.png) |
 
