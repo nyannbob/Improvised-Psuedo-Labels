@@ -41,31 +41,16 @@ val_size = 0.15
 test_size = 0.15
 ```
 
-## 🛠️ Installation
+## Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/bird-classification-ssl.git
-cd bird-classification-ssl
-
-# Create and activate virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+git clone https://github.com/nyannbob/Improvised-Psuedo-Labels.git
+cd git clone Improvised-Psuedo-Labels
 
 # Install requirements
 pip install -r requirements.txt
 ```
-
-## Requirements
-
-- Python 3.8+
-- PyTorch 1.8+
-- torchvision
-- efficientnet-pytorch
-- numpy
-- pandas
-- scikit-learn
-- tqdm
 
 ## Model Architecture
 
@@ -75,11 +60,11 @@ We use EfficientNet-B0 as our base model due to its:
 - Resource-efficient training on consumer GPUs
 - Mobile-friendly architecture
 
-## Training Pipeline
+## Training stages
 
-### 1. Initial Supervised Training
-### 2. Pseudo-Label Generation with Threshold Momentum
-### 3. Semi-Supervised Training
+1. Initial Supervised Training
+2. Pseudo-Label Generation with Threshold Momentum
+3. Semi-Supervised Training
 
 ## Novel Threshold Momentum Approach
 
