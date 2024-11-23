@@ -68,18 +68,22 @@ We use EfficientNet-B0 as our base model due to its:
 
 ## Novel Threshold Momentum Approach
 
-Our approach introduces dynamic threshold scheduling using momentum:
+The approach for **pseudo-labeling with threshold scheduling** works by dynamically adjusting the threshold used for generating pseudo-labels based on the model's confidence (i.e., the average maximum probability of predictions). Here's a summary for the same:
 
-1. Start with a high confidence threshold (e.g., 0.8)
-2. Adjust threshold based on model's learning progress
-3. Use momentum to smooth threshold changes
-4. Automatically balance between precision and recall of pseudo-labels
+1. **Calculate the average maximum probability** (`avg_max_prob`) from the model’s predictions.
+2. **Threshold check**:
+    - If the average probability is greater than or equal to a predefined **`max_threshold`**, adjust the threshold using a formula that incorporates the current threshold and the average probability.
+    - If the average probability is lower, adjust the threshold accordingly.
+3. **Incremental adjustments**:
+    - If the threshold is increased, the increment is reset to a small value (e.g., 0.05).
+    - If the threshold decreases, the increment is either halved or increased based on the comparison between the factor and the current threshold.
+4. **Return the updated threshold and increment** values for further training.
 
-```python
-# Pseudo-code for threshold update
-current_threshold = momentum_factor * previous_threshold + \
-                   (1 - momentum_factor) * current_confidence
-```
+This approach helps refine the pseudo-labeling process by gradually improving the model's ability to learn from the unlabeled data over time.
+
+### Key Benefits:
+- **Dynamic adjustment**: The threshold adapts to the model's performance.
+- **Improved learning**: By updating the threshold and increment dynamically, the model can focus on high-confidence predictions while refining lower-confidence ones.
 
 
 ## Visual Results
