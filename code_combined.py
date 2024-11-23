@@ -163,7 +163,6 @@ def evaluate_model(model, dataloader):
     model.eval()
     all_preds = []
     all_labels = []
-    
     with torch.no_grad():
         for inputs, labels in dataloader:
             inputs, labels = inputs.to(device), labels.to(device)
@@ -171,28 +170,11 @@ def evaluate_model(model, dataloader):
             _, preds = torch.max(outputs, 1)
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
-    
-    # Compute confusion matrix
-    cm = confusion_matrix(all_labels, all_preds)
-    TN, FP, FN, TP = cm.ravel()
-    
-    # Calculate metrics
-    accuracy = (TP + TN) / (TP + TN + FP + FN)
-    precision = precision_score(all_labels, all_preds, average='binary', zero_division=0)
-    recall = recall_score(all_labels, all_preds, average='binary', zero_division=0)
-    f1 = f1_score(all_labels, all_preds, average='binary', zero_division=0)
-    
-    # Print results
-    print(f"Accuracy: {accuracy * 100:.2f}%")
-    print(f"True Positives (TP): {TP}")
-    print(f"False Positives (FP): {FP}")
-    print(f"True Negatives (TN): {TN}")
-    print(f"False Negatives (FN): {FN}")
-    print(f"Precision: {precision:.2f}")
-    print(f"Recall: {recall:.2f}")
-    print(f"F1-Score: {f1:.2f}")
 
-    return accuracy, precision, recall, f1
+    accuracy = sum(p == l for p, l in zip(all_preds, all_labels)) / len(all_labels)
+    print(f"Accuracy: {accuracy * 100:.2f}%")
+
+    return accuracy
 
 
 # Compare training paradigms
@@ -264,5 +246,5 @@ if __name__ == '__main__':
     results = compare_training_paradigms(model_fn, train_dataset, test_loader, val_loader, split_percentage=50, num_epochs=5)
 
     print("\nResults:")
-    for paradigm, accuracy, precision, recall, f1 in results.items():
+    for paradigm, accuracy in results.items():
         print(f"{paradigm}: {accuracy * 100:.2f}%")

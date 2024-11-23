@@ -55,6 +55,7 @@ def generate_pseudo_labels(model, loader, threshold=0.9):
 
     pseudo_data = []
     pseudo_labels = []
+    all_max_probs = []
 
     with torch.no_grad():
         for inputs, _ in loader:
@@ -64,6 +65,7 @@ def generate_pseudo_labels(model, loader, threshold=0.9):
 
             max_probs, preds = torch.max(probs, dim=1)
             mask = max_probs >= threshold
+            all_max_probs.append(max_probs)
 
             pseudo_data.append(inputs[mask].cpu())
             pseudo_labels.append(preds[mask].cpu())
@@ -74,6 +76,9 @@ def generate_pseudo_labels(model, loader, threshold=0.9):
     else:
         pseudo_data = torch.empty(0, *inputs.shape[1:])
         pseudo_labels = torch.empty(0, dtype=torch.long)
+
+    all_max_probs = torch.cat(all_max_probs, dim=0) if all_max_probs else torch.tensor([0.0])
+    print("Mean confidence:", all_max_probs.mean().item())
 
     print(f"Generated {len(pseudo_labels)} pseudo-labels from unlabeled data.")
     return pseudo_data, pseudo_labels
@@ -158,12 +163,10 @@ def train_pseudo_labeling(model, labeled_loader, unlabeled_loader, criterion, op
     plot_loss(loss_per_iteration)
 
 
-
 def evaluate_model(model, dataloader):
     model.eval()
     all_preds = []
     all_labels = []
-    
     with torch.no_grad():
         for inputs, labels in dataloader:
             inputs, labels = inputs.to(device), labels.to(device)
@@ -171,29 +174,11 @@ def evaluate_model(model, dataloader):
             _, preds = torch.max(outputs, 1)
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
-    
-    # Compute confusion matrix
-    cm = confusion_matrix(all_labels, all_preds)
-    TN, FP, FN, TP = cm.ravel()
-    
-    # Calculate metrics
-    accuracy = (TP + TN) / (TP + TN + FP + FN)
-    precision = precision_score(all_labels, all_preds, average='binary', zero_division=0)
-    recall = recall_score(all_labels, all_preds, average='binary', zero_division=0)
-    f1 = f1_score(all_labels, all_preds, average='binary', zero_division=0)
-    
-    # Print results
+
+    accuracy = sum(p == l for p, l in zip(all_preds, all_labels)) / len(all_labels)
     print(f"Accuracy: {accuracy * 100:.2f}%")
-    print(f"True Positives (TP): {TP}")
-    print(f"False Positives (FP): {FP}")
-    print(f"True Negatives (TN): {TN}")
-    print(f"False Negatives (FN): {FN}")
-    print(f"Precision: {precision:.2f}")
-    print(f"Recall: {recall:.2f}")
-    print(f"F1-Score: {f1:.2f}")
 
-    return accuracy, precision, recall, f1
-
+    return accuracy
 
 # Compare training paradigms
 def compare_training_paradigms(model_fn, train_dataset, test_loader, val_loader, split_percentage=10, num_epochs=5):
@@ -220,7 +205,7 @@ def compare_training_paradigms(model_fn, train_dataset, test_loader, val_loader,
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
     criterion = LabelSmoothingCrossEntropy()
-    train_pseudo_labeling(model, labeled_loader, unlabeled_loader, criterion, optimizer, scheduler, num_epochs, threshold=0.01)
+    train_pseudo_labeling(model, labeled_loader, unlabeled_loader, criterion, optimizer, scheduler, num_epochs, threshold=0.9)
     results["Pseudo-Labeling"] = evaluate_model(model, test_loader)
 
     # Train on only labeled data
@@ -262,4 +247,4 @@ if __name__ == '__main__':
     def model_fn():
         return timm.create_model('efficientnet_b0', pretrained=True, num_classes=len(get_classes(dataset_path))).to(device)
 
-    results = compare_training_paradigms(model_fn, train_dataset, test_loader, val_loader, split_percentage=50, num_epochs=5)
+    results = compare_training_paradigms(model_fn, train_dataset, test_loader, val_loader, split_percentage=50, num_epochs=10)

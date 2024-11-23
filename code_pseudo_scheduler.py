@@ -45,14 +45,32 @@ def split_labeled_unlabeled(dataset, split_percentage=40):
 
 # Threshold Scheduler Class
 class ThresholdScheduler:
-    def __init__(self, initial_threshold=0.0, max_threshold=0.8, increment=0.9):
+    def __init__(self, initial_threshold=0.3, max_threshold=0.9, min_threshold=0.6, increment=0.2):
         self.threshold = initial_threshold
         self.max_threshold = max_threshold
         self.increment = increment
+        self.min_threshold = min_threshold
 
     def update(self, max_probs):
         avg_max_prob = max_probs.mean().item()
-        self.threshold = min(self.max_threshold, self.threshold*(1-self.increment) + avg_max_prob * self.increment)
+        if(avg_max_prob*2 >= self.max_threshold):
+            factor = (self.threshold+avg_max_prob+self.max_threshold)/3
+            self.increment = 0.05
+            increment_f = self.increment
+        else:
+            factor = avg_max_prob*2
+
+            if(factor<self.threshold):
+                increment_f = self.increment/2
+            else:
+                self.increment = min(0.8,self.increment*2 )
+                increment_f = self.increment
+            
+        print(self.increment)
+        print(factor)
+        self.threshold = min(self.max_threshold, self.threshold*(1-self.increment) + factor * increment_f)
+        print(self.threshold)
+        self.threshold = max(self.threshold,self.min_threshold)
         return self.threshold
 
 
@@ -103,7 +121,7 @@ def plot_loss(loss_per_iteration):
     plt.show()
 
 # Train using pseudo-labeling
-def train_pseudo_labeling(model, labeled_loader, unlabeled_loader, criterion, optimizer, scheduler, num_epochs=2, initial_threshold=0.0):
+def train_pseudo_labeling(model, labeled_loader, unlabeled_loader, criterion, optimizer, scheduler, num_epochs=5, initial_threshold=0.4):
     threshold_scheduler = ThresholdScheduler(initial_threshold=initial_threshold)
     loss_per_iteration = []
 
@@ -158,7 +176,6 @@ def evaluate_model(model, dataloader):
     model.eval()
     all_preds = []
     all_labels = []
-    
     with torch.no_grad():
         for inputs, labels in dataloader:
             inputs, labels = inputs.to(device), labels.to(device)
@@ -166,28 +183,11 @@ def evaluate_model(model, dataloader):
             _, preds = torch.max(outputs, 1)
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
-    
-    # Compute confusion matrix
-    cm = confusion_matrix(all_labels, all_preds)
-    TN, FP, FN, TP = cm.ravel()
-    
-    # Calculate metrics
-    accuracy = (TP + TN) / (TP + TN + FP + FN)
-    precision = precision_score(all_labels, all_preds, average='binary', zero_division=0)
-    recall = recall_score(all_labels, all_preds, average='binary', zero_division=0)
-    f1 = f1_score(all_labels, all_preds, average='binary', zero_division=0)
-    
-    # Print results
-    print(f"Accuracy: {accuracy * 100:.2f}%")
-    print(f"True Positives (TP): {TP}")
-    print(f"False Positives (FP): {FP}")
-    print(f"True Negatives (TN): {TN}")
-    print(f"False Negatives (FN): {FN}")
-    print(f"Precision: {precision:.2f}")
-    print(f"Recall: {recall:.2f}")
-    print(f"F1-Score: {f1:.2f}")
 
-    return accuracy, precision, recall, f1
+    accuracy = sum(p == l for p, l in zip(all_preds, all_labels)) / len(all_labels)
+    print(f"Accuracy: {accuracy * 100:.2f}%")
+
+    return accuracy
 
 # Main script
 if __name__ == '__main__':
@@ -228,7 +228,7 @@ if __name__ == '__main__':
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
     criterion = LabelSmoothingCrossEntropy()
 
-    train_pseudo_labeling(model, labeled_loader, unlabeled_loader, criterion, optimizer, scheduler, num_epochs=5, initial_threshold=0.01)
+    train_pseudo_labeling(model, labeled_loader, unlabeled_loader, criterion, optimizer, scheduler, num_epochs=10, initial_threshold=0.4)
     accuracy = evaluate_model(model, test_loader)
 
     print(f"\nFinal Test Accuracy: {accuracy * 100:.2f}%")
