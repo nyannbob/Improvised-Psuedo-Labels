@@ -103,7 +103,7 @@ Here are some visual results and insights from our project:
 
 | **Pseudo-Label Distribution** | **Model Accuracy Comparison** |
 |-------------------------------|-------------------------------|
-| ![Pseudo-Labels](barachart.png) | ![Accuracy](image.png) |
+| ![Pseudo-Labels](barchart.png) | ![Accuracy](image.png) |
 
 
 ## Contributors
