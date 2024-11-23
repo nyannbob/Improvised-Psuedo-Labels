@@ -1,16 +1,15 @@
-# Bird Species Classification using Semi-Supervised Learning with Dynamic Threshold Momentum
+# Bird Species Classification using Pseudo Labeling and Threshold Scheduling
 
-This repository implements a novel approach to semi-supervised learning for bird species classification using the CUB-200-2011 dataset. Our method enhances traditional pseudo-labeling by introducing a dynamic threshold momentum mechanism, achieving improved classification accuracy with limited labeled data.
+This repository implements a novel approach on the top of Pseudo labeling called 'Threshold Scheduling' for bird species classification using the CUB-200-2011 dataset. Our method enhances traditional pseudo-labeling by introducing a dynamic threshold momentum mechanism, achieving improved classification accuracy with limited labeled data.
 
-## 🎯 Objectives
+## Objectives
 
 - Train a semi-supervised model using only 40% labeled data
 - Generate and refine pseudo-labels for the remaining 60% unlabeled data
 - Implement novel threshold momentum for pseudo-label selection
-- Achieve competitive accuracy compared to fully supervised baselines
-- Demonstrate real-world applicability on smartphone-captured bird images
+- Achieve an accuracy comparable to the fully supervised baselines
 
-## 📊 Dataset
+## Dataset
 
 We use the Caltech-UCSD Birds-200-2011 (CUB-200-2011) dataset, which contains:
 - 200 bird species categories
@@ -57,7 +56,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## 📋 Requirements
+## Requirements
 
 - Python 3.8+
 - PyTorch 1.8+
@@ -68,7 +67,7 @@ pip install -r requirements.txt
 - scikit-learn
 - tqdm
 
-## 🏗️ Model Architecture
+## Model Architecture
 
 We use EfficientNet-B0 as our base model due to its:
 - Balanced accuracy-efficiency trade-off
@@ -76,36 +75,17 @@ We use EfficientNet-B0 as our base model due to its:
 - Resource-efficient training on consumer GPUs
 - Mobile-friendly architecture
 
-## 🚀 Training Pipeline
+## Training Pipeline
 
 ### 1. Initial Supervised Training
-```bash
-python train_supervised.py --data_path ./data/CUB_200_2011 \
-                         --labeled_fraction 0.4 \
-                         --batch_size 64 \
-                         --epochs 10
-```
-
 ### 2. Pseudo-Label Generation with Threshold Momentum
-```bash
-python generate_pseudolabels.py --model_path ./checkpoints/supervised_model.pth \
-                               --threshold_start 0.9 \
-                               --momentum_factor 0.95
-```
-
 ### 3. Semi-Supervised Training
-```bash
-python train_semisupervised.py --labeled_data ./data/labeled \
-                              --pseudolabeled_data ./data/pseudolabeled \
-                              --batch_size 64 \
-                              --epochs 20
-```
 
-## 🔄 Novel Threshold Momentum Approach
+## Novel Threshold Momentum Approach
 
 Our approach introduces dynamic threshold scheduling using momentum:
 
-1. Start with a high confidence threshold (e.g., 0.9)
+1. Start with a high confidence threshold (e.g., 0.8)
 2. Adjust threshold based on model's learning progress
 3. Use momentum to smooth threshold changes
 4. Automatically balance between precision and recall of pseudo-labels
@@ -116,34 +96,24 @@ current_threshold = momentum_factor * previous_threshold + \
                    (1 - momentum_factor) * current_confidence
 ```
 
-## 📈 Results
 
-Model Performance Comparison:
+## Visual Results
 
-| Model Type | Accuracy | Final Loss | Pseudo-Labeled Data |
-|------------|----------|------------|-------------------|
-| Full Supervised (100%) | 92.24% | 0.70 | N/A |
-| Baseline (40% labeled) | 74.13% | 1.86 | N/A |
-| Fixed Threshold | 86.20% | 0.93 | 838 |
-| Threshold Momentum | 87.20% | 0.92 | 1817 |
+Here are some visual results and insights from our project:
 
-## 👥 Contributors
+| **Pseudo-Label Distribution** | **Model Accuracy Comparison** |
+|-------------------------------|-------------------------------|
+| ![Pseudo-Labels](path/to/image1.png) | ![Accuracy](path/to/image2.png) |
 
-- Nishant Kumar Singh (2104221)
+
+## Contributors
+
+- Nishant Kumar Singh 
+- Aditya Rajesh Bawangade 
 - Vikrant Suresh Tripathi (2103141)
-- Aditya Rajesh Bawangade (2103111)
 
-## 📄 Citation
 
-If you use this code in your research, please cite:
-```bibtex
-@misc{singh2024enhancing,
-  title={Enhancing Bird Classification with Semi-Supervised Learning and Dynamic Threshold Momentum},
-  author={Singh, Nishant Kumar and Tripathi, Vikrant Suresh and Bawangade, Aditya Rajesh},
-  year={2024}
-}
-```
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
