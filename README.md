@@ -99,7 +99,7 @@ Here are some visual results and insights from our project:
 
 - Nishant Kumar Singh 
 - Aditya Rajesh Bawangade 
-- Vikrant Suresh Tripathi (2103141)
+- Vikrant Suresh Tripathi
 
 
 
