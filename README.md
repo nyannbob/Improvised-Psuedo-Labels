@@ -1,6 +1,10 @@
-# Bird Species Classification using Pseudo Labeling and Threshold Scheduling
+# Threshold Scheduler for Pseudo Labels
 
 This repository implements a novel approach on the top of Pseudo labeling called 'Threshold Scheduling' for bird species classification using the CUB-200-2011 dataset. Our method enhances traditional pseudo-labeling by introducing a dynamic threshold momentum mechanism, achieving improved classification accuracy with limited labeled data.
+| **Bird Species Classification using Threshold Scheduling** |
+|-------------------------------|
+| ![Accuracy](plots/image.png) |
+
 
 ## Objectives
 
@@ -90,9 +94,15 @@ This approach helps refine the pseudo-labeling process by gradually improving th
 
 Here are some visual results and insights from our project:
 
-| **Pseudo-Label Distribution** | **Model Performance on real world data** |
+| **Training Loss Curve with Fixed Threshold** | **Training Loss Curve with Scheduler** |
 |-------------------------------|-------------------------------|
-| ![Pseudo-Labels](barchart.png) | ![Accuracy](image.png) |
+| ![Pseudo-Labels](plots/noScheduler.jpg) | ![Accuracy](plots/Scheduler_loss_10.png) |
+
+
+| **Pseudo-Label Distribution** | **Threshold and Confidence with Scheduler** |
+|-------------------------------|-------------------------------|
+| ![Pseudo-Labels](plots/barchart.png) | ![Accuracy](plots/threshold_scheduling.png) |
+
 
 
 ## Contributors
